@@ -366,8 +366,7 @@ def show_dashboard_tab(trades_df, stats):
     
     with col2:
         st.subheader("⭐ Discipline Score Trend")
-        plot_discipline_trend(trades_df)
-      def show_trade_details_tab(trades_df):
+        plot_discipline_trend(trades_df) def show_trade_details_tab(trades_df):
     """Trade details table"""
     
     st.header("📋 All Trades")
