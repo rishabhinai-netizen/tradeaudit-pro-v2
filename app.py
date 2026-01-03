@@ -1,30 +1,19 @@
 """
-TradeAudit Pro - Phase 2
-Professional Trade Analysis Platform
-
-Features:
-- Fixed FIFO trade pairing (captures ALL trades)
-- Short sell tracking
-- ICICI Breeze market data integration
-- Groq AI-powered insights
-- Apple-style dark UI
-- DPDP compliant (no data storage)
+TradeAudit Pro - Phase 2 FINAL
+Premium Apple-Style UI + Attention Required Tab + Quality AI
 """
 
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
 from datetime import datetime
 import io
 
-# Import our modules
 from modules.parsers import broker_parser
 from modules.analysis import discipline_scorer
-from modules.market_data import breeze_connector
 from modules.ai import groq_insights
 
-# Page configuration - PRIVACY MODE
+# Page config
 st.set_page_config(
     page_title="TradeAudit Pro",
     page_icon="📊",
@@ -32,85 +21,159 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Hide Streamlit branding for privacy
+# Hide Streamlit branding
 hide_st_style = """
 <style>
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header {visibility: hidden;}
+.stDeployButton {visibility: hidden;}
 </style>
 """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
-# Apple-style Dark Theme CSS
+# Premium Apple-Style UI
 st.markdown("""
 <style>
-    /* Dark theme base */
+    /* Apple-inspired minimalist design */
     .stApp {
-        background: linear-gradient(135deg, #0A0E27 0%, #1A1F3A 100%);
+        background: #000000;
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
     }
     
-    /* Metric cards */
+    /* Premium card design */
     .metric-card {
-        background: rgba(26, 31, 58, 0.6);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(74, 144, 226, 0.2);
-        border-radius: 16px;
-        padding: 20px;
-        margin: 10px 0;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        background: linear-gradient(145deg, #1c1c1e 0%, #2c2c2e 100%);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+        padding: 24px;
+        margin: 12px 0;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+        transition: all 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        border-color: rgba(255,255,255,0.2);
+    }
+    
+    /* Typography */
+    h1 {
+        color: #FFFFFF;
+        font-weight: 700;
+        font-size: 42px;
+        letter-spacing: -0.5px;
+    }
+    
+    h2 {
+        color: #FFFFFF;
+        font-weight: 600;
+        font-size: 28px;
+        margin-top: 32px;
+    }
+    
+    h3 {
+        color: #FFFFFF;
+        font-weight: 600;
+        font-size: 20px;
     }
     
     /* Profit/Loss colors */
     .profit {
-        color: #00C896 !important;
+        color: #30D158 !important;
         font-weight: 600;
-        font-family: 'JetBrains Mono', monospace;
+        font-family: 'SF Mono', 'Menlo', monospace;
     }
     
     .loss {
-        color: #FF5B5B !important;
+        color: #FF453A !important;
         font-weight: 600;
-        font-family: 'JetBrains Mono', monospace;
+        font-family: 'SF Mono', 'Menlo', monospace;
     }
     
-    /* Headers */
-    h1, h2, h3 {
-        color: #FFFFFF !important;
-        font-weight: 700;
+    /* Buttons - Apple style */
+    .stButton > button {
+        background: linear-gradient(180deg, #0A84FF 0%, #0066CC 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 14px 28px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.2s ease;
+    }
+    
+    .stButton > button:hover {
+        background: linear-gradient(180deg, #409CFF 0%, #0A84FF 100%);
+        transform: scale(1.02);
     }
     
     /* Data tables */
     .dataframe {
-        background: rgba(26, 31, 58, 0.4) !important;
+        background: #1c1c1e !important;
         border-radius: 12px;
-    }
-    
-    /* Buttons */
-    .stButton > button {
-        background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 12px 24px;
-        font-weight: 600;
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 24px rgba(74, 144, 226, 0.4);
-    }
-    
-    /* File uploader */
-    .uploadedFile {
-        background: rgba(26, 31, 58, 0.6);
-        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.1);
     }
     
     /* Metrics */
     [data-testid="stMetricValue"] {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 24px;
+        font-family: 'SF Mono', 'Menlo', monospace;
+        font-size: 32px;
+        font-weight: 600;
+    }
+    
+    [data-testid="stMetricLabel"] {
+        color: rgba(255,255,255,0.6);
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background: transparent;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background: #2c2c2e;
+        border-radius: 10px;
+        padding: 12px 24px;
+        color: rgba(255,255,255,0.6);
+        border: 1px solid transparent;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: #0A84FF;
+        color: white;
+    }
+    
+    /* File uploader */
+    [data-testid="stFileUploader"] {
+        background: #2c2c2e;
+        border-radius: 12px;
+        border: 2px dashed rgba(255,255,255,0.2);
+        padding: 20px;
+    }
+    
+    /* Warnings */
+    .stWarning {
+        background: rgba(255, 159, 10, 0.1);
+        border-left: 4px solid #FF9F0A;
+        border-radius: 8px;
+    }
+    
+    .stError {
+        background: rgba(255, 69, 58, 0.1);
+        border-left: 4px solid #FF453A;
+        border-radius: 8px;
+    }
+    
+    .stSuccess {
+        background: rgba(48, 209, 88, 0.1);
+        border-left: 4px solid #30D158;
+        border-radius: 8px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -119,33 +182,31 @@ st.markdown("""
 def main():
     """Main application"""
     
-    # Initialize session state
     if 'trades_df' not in st.session_state:
         st.session_state.trades_df = None
     if 'stats' not in st.session_state:
         st.session_state.stats = None
+    if 'attention_df' not in st.session_state:
+        st.session_state.attention_df = None
     
     # Header
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        st.title("📊 TradeAudit Pro")
-        st.caption("Professional Trade Analysis Platform")
+    st.title("📊 TradeAudit Pro")
+    st.caption("Professional Trade Analysis Platform")
     
     # Sidebar
     with st.sidebar:
         st.header("📁 Upload Tradebook")
         
-        # File uploader
         uploaded_file = st.file_uploader(
             "Choose CSV file",
             type=['csv'],
-            help="Supported: Kotak, Zerodha, ICICI Direct"
+            help="Supported: Kotak Securities"
         )
         
         trade_type = st.selectbox(
             "Trade Type",
-            ['equity', 'derivatives'],
-            help="Select equity or F&O trades"
+            ['derivatives', 'equity'],
+            help="Select F&O or Equity trades"
         )
         
         if uploaded_file:
@@ -155,27 +216,14 @@ def main():
         
         st.divider()
         
-        # API Configuration
-        st.header("⚙️ Settings")
-        
-        with st.expander("🔑 Update API Keys"):
-            st.caption("Update daily session tokens here")
-            
-            # Breeze session token updater
-            new_breeze_token = st.text_input("Breeze Session Token", type="password", key="breeze_token")
-            if st.button("Update Breeze Token"):
-                st.session_state['breeze_session_override'] = new_breeze_token
-                st.success("✅ Updated!")
-            
-            # Groq API key updater
-            new_groq_key = st.text_input("Groq API Key", type="password", key="groq_key")
-            if st.button("Update Groq Key"):
-                st.session_state['groq_key_override'] = new_groq_key
+        st.header("⚙️ API Settings")
+        with st.expander("🔑 Update Keys"):
+            new_groq_key = st.text_input("Groq API Key", type="password")
+            if st.button("Update"):
                 st.success("✅ Updated!")
         
-        # Info
         st.divider()
-        st.caption("🔒 DPDP Compliant")
+        st.caption("🔒 Privacy Protected")
         st.caption("No data stored • Session only")
     
     # Main content
@@ -186,30 +234,35 @@ def main():
 
 
 def process_file(uploaded_file, trade_type):
-    """Process uploaded file"""
+    """Process uploaded file with attention tracking"""
     try:
-        # Parse file
-        trades_df, error = broker_parser.parse_broker_file(uploaded_file, trade_type)
+        # Parse file - now returns 3 values
+        trades_df, attention_df, error = broker_parser.parse_broker_file(uploaded_file, trade_type)
         
         if error:
             st.error(f"❌ {error}")
             return
         
         if trades_df is None or len(trades_df) == 0:
-            st.error("❌ No trades found in file")
-            return
+            st.warning("⚠️ No valid trades found. Check 'Attention Required' tab.")
         
         # Calculate scores
-        trades_df = discipline_scorer.calculate_discipline_scores(trades_df)
-        
-        # Calculate stats
-        stats = discipline_scorer.calculate_portfolio_stats(trades_df)
+        if trades_df is not None and len(trades_df) > 0:
+            trades_df = discipline_scorer.calculate_discipline_scores(trades_df)
+            stats = discipline_scorer.calculate_portfolio_stats(trades_df)
+        else:
+            stats = {}
         
         # Store in session
         st.session_state.trades_df = trades_df
         st.session_state.stats = stats
+        st.session_state.attention_df = attention_df
         
-        st.success(f"✅ Processed {len(trades_df)} trades successfully!")
+        if trades_df is not None and len(trades_df) > 0:
+            st.success(f"✅ Processed {len(trades_df)} valid trades!")
+            if attention_df is not None and len(attention_df) > 0:
+                st.warning(f"⚠️ {len(attention_df)} symbols excluded (see Attention Required tab)")
+        
         st.rerun()
         
     except Exception as e:
@@ -217,13 +270,15 @@ def process_file(uploaded_file, trade_type):
 
 
 def show_welcome_screen():
-    """Show welcome screen when no file uploaded"""
+    """Premium welcome screen"""
     
     st.markdown("""
-    <div style='text-align: center; padding: 60px 20px;'>
-        <h2 style='color: #4A90E2; font-size: 48px;'>👋 Welcome to TradeAudit Pro</h2>
-        <p style='font-size: 20px; color: #8B92B0; margin-top: 20px;'>
-            Professional trade analysis with AI-powered insights
+    <div style='text-align: center; padding: 80px 20px;'>
+        <h1 style='font-size: 56px; font-weight: 700; background: linear-gradient(135deg, #0A84FF 0%, #5E5CE6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;'>
+            Welcome to TradeAudit Pro
+        </h1>
+        <p style='font-size: 20px; color: rgba(255,255,255,0.6); margin-top: 16px;'>
+            Professional-grade trade analysis with AI insights
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -234,10 +289,12 @@ def show_welcome_screen():
         st.markdown("""
         <div class='metric-card'>
             <h3>📈 Complete Analysis</h3>
-            <p>• All trades captured (FIFO logic)<br/>
-            • Short sell tracking<br/>
-            • Discipline scoring<br/>
-            • Pattern detection</p>
+            <p style='color: rgba(255,255,255,0.7);'>
+            • FIFO position tracking<br/>
+            • LONG/SHORT breakdown<br/>
+            • All charges included<br/>
+            • Discipline scoring
+            </p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -245,10 +302,12 @@ def show_welcome_screen():
         st.markdown("""
         <div class='metric-card'>
             <h3>🤖 AI Insights</h3>
-            <p>• Trade-by-trade analysis<br/>
-            • Behavioral patterns<br/>
-            • Personalized tips<br/>
-            • Setup quality scoring</p>
+            <p style='color: rgba(255,255,255,0.7);'>
+            • Specific recommendations<br/>
+            • Trade-by-trade analysis<br/>
+            • Pattern detection<br/>
+            • Actionable improvements
+            </p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -256,138 +315,143 @@ def show_welcome_screen():
         st.markdown("""
         <div class='metric-card'>
             <h3>🔒 Privacy First</h3>
-            <p>• No data storage<br/>
-            • DPDP compliant<br/>
-            • Session only<br/>
-            • Export anytime</p>
+            <p style='color: rgba(255,255,255,0.7);'>
+            • No data storage<br/>
+            • Session-only processing<br/>
+            • Export capability<br/>
+            • DPDP compliant
+            </p>
         </div>
         """, unsafe_allow_html=True)
     
-    st.markdown("<br/><br/>", unsafe_allow_html=True)
-    
-    st.info("👈 **Upload your tradebook** from Kotak, Zerodha, or ICICI Direct to get started")
+    st.info("👈 Upload your Kotak Securities tradebook to begin analysis")
 
 
 def show_dashboard():
-    """Main dashboard with tabs"""
+    """Main dashboard with all tabs"""
     
     trades_df = st.session_state.trades_df
     stats = st.session_state.stats
+    attention_df = st.session_state.attention_df
     
     # Create tabs
-    tabs = st.tabs(["📊 Dashboard", "📋 Trade Details", "🤖 AI Insights", "📈 Patterns", "💾 Export"])
+    tab_names = ["📊 Dashboard", "📋 Trade Details", "🤖 AI Insights", "📈 Patterns", "💾 Export"]
     
-    # Tab 1: Dashboard
-    with tabs[0]:
+    if attention_df is not None and len(attention_df) > 0:
+        tab_names.insert(2, "⚠️ Attention Required")
+    
+    tabs = st.tabs(tab_names)
+    
+    tab_idx = 0
+    
+    # Dashboard
+    with tabs[tab_idx]:
         show_dashboard_tab(trades_df, stats)
+    tab_idx += 1
     
-    # Tab 2: Trade Details
-    with tabs[1]:
+    # Trade Details
+    with tabs[tab_idx]:
         show_trade_details_tab(trades_df)
+    tab_idx += 1
     
-    # Tab 3: AI Insights
-    with tabs[2]:
+    # Attention Required (if exists)
+    if attention_df is not None and len(attention_df) > 0:
+        with tabs[tab_idx]:
+            show_attention_tab(attention_df)
+        tab_idx += 1
+    
+    # AI Insights
+    with tabs[tab_idx]:
         show_ai_insights_tab(trades_df, stats)
+    tab_idx += 1
     
-    # Tab 4: Patterns
-    with tabs[3]:
+    # Patterns
+    with tabs[tab_idx]:
         show_patterns_tab(trades_df)
+    tab_idx += 1
     
-    # Tab 5: Export
-    with tabs[4]:
+    # Export
+    with tabs[tab_idx]:
         show_export_tab(trades_df)
 
 
 def show_dashboard_tab(trades_df, stats):
-    """Dashboard tab with metrics and charts"""
+    """Dashboard with key metrics"""
     
-    st.header("📊 Portfolio Overview")
+    if trades_df is None or len(trades_df) == 0:
+        st.warning("No valid trades to display")
+        return
+    
+    st.header("Portfolio Overview")
     
     # Key metrics
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("Total Trades", stats['total_trades'])
+        st.metric("Total Trades", stats.get('total_trades', 0))
     
     with col2:
-        win_rate = stats['win_rate']
-        st.metric("Win Rate", f"{win_rate:.1f}%")
+        st.metric("Win Rate", f"{stats.get('win_rate', 0):.1f}%")
     
     with col3:
-        pnl = stats['net_pnl']
-        st.metric("Net P&L", f"₹{pnl:,.0f}")
+        pnl = stats.get('net_pnl', 0)
+        st.metric("Net P&L", f"₹{pnl/100000:.2f}L")
     
     with col4:
-        pf = stats['profit_factor']
-        st.metric("Profit Factor", f"{pf:.2f}")
+        st.metric("Profit Factor", f"{stats.get('profit_factor', 0):.2f}")
     
-    with col5:
-        avg_score = stats['avg_discipline_score']
-        st.metric("Avg Score", f"{avg_score:.0f}/100")
-    
-    # Direction-specific metrics (Phase 2)
+    # Direction breakdown
     if 'direction' in trades_df.columns:
-        st.subheader("📍 Long vs Short Performance")
+        st.subheader("LONG vs SHORT Performance")
         
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.metric("Long Trades", stats.get('long_trades', 0))
-        
+            st.metric("LONG Trades", stats.get('long_trades', 0))
         with col2:
-            long_pnl = stats.get('long_pnl', 0)
-            st.metric("Long P&L", f"₹{long_pnl:,.0f}")
-        
+            st.metric("LONG P&L", f"₹{stats.get('long_pnl', 0)/100000:.2f}L")
         with col3:
-            st.metric("Short Trades", stats.get('short_trades', 0))
-        
+            st.metric("SHORT Trades", stats.get('short_trades', 0))
         with col4:
-            short_pnl = stats.get('short_pnl', 0)
-            st.metric("Short P&L", f"₹{short_pnl:,.0f}")
-    
-    st.divider()
+            st.metric("SHORT P&L", f"₹{stats.get('short_pnl', 0)/100000:.2f}L")
     
     # Charts
+    st.divider()
+    
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("📈 Cumulative P&L")
+        st.subheader("Cumulative P&L")
         plot_cumulative_pnl(trades_df)
     
     with col2:
-        st.subheader("🎯 Win/Loss Distribution")
-        plot_win_loss_dist(trades_df)
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("📊 P&L by Symbol")
-        plot_pnl_by_symbol(trades_df)
-    
-    with col2:
-        st.subheader("⭐ Discipline Score Trend")
-        plot_discipline_trend(trades_df)
+        st.subheader("P&L Distribution")
+        plot_pnl_dist(trades_df)
 
 
 def show_trade_details_tab(trades_df):
     """Trade details table"""
     
-    st.header("📋 All Trades")
+    if trades_df is None or len(trades_df) == 0:
+        st.warning("No trades to display")
+        return
+    
+    st.header("All Trades")
     
     # Filters
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        result_filter = st.selectbox("Filter by Result", ["All", "Wins", "Losses"])
+        result_filter = st.selectbox("Result", ["All", "Wins", "Losses"])
     
     with col2:
         if 'direction' in trades_df.columns:
-            direction_filter = st.selectbox("Filter by Direction", ["All", "LONG", "SHORT"])
+            direction_filter = st.selectbox("Direction", ["All", "LONG", "SHORT"])
         else:
             direction_filter = "All"
     
     with col3:
-        grade_filter = st.selectbox("Filter by Grade", ["All", "A+", "A", "B", "C", "D", "F"])
+        grade_filter = st.selectbox("Grade", ["All", "A+", "A", "B", "C", "D", "F"])
     
     # Apply filters
     filtered_df = trades_df.copy()
@@ -405,39 +469,55 @@ def show_trade_details_tab(trades_df):
     
     st.caption(f"Showing {len(filtered_df)} of {len(trades_df)} trades")
     
-    # Display table
+    # Display
     display_cols = ['entry_date', 'symbol', 'quantity', 'entry_price', 'exit_price', 
                    'net_pnl', 'return_pct', 'discipline_score', 'grade']
     
     if 'direction' in filtered_df.columns:
         display_cols.insert(2, 'direction')
     
-    st.dataframe(
-        filtered_df[display_cols],
-        use_container_width=True,
-        height=600
-    )
+    st.dataframe(filtered_df[display_cols], use_container_width=True, height=600)
+
+
+def show_attention_tab(attention_df):
+    """NEW: Attention Required tab"""
+    
+    st.header("⚠️ Attention Required")
+    st.write("The following symbols were **excluded** from analysis due to quantity mismatches:")
+    
+    for idx, row in attention_df.iterrows():
+        st.markdown(f"""
+        <div class='metric-card' style='border-left: 4px solid #FF9F0A;'>
+            <h3>🔴 {row['symbol']}</h3>
+            <p><strong>Status:</strong> {row['status']} ({abs(row['difference']):.0f} units unmatched)</p>
+            <p><strong>Buy Quantity:</strong> {row['buy_qty']:.0f} | <strong>Sell Quantity:</strong> {row['sell_qty']:.0f}</p>
+            <p><strong>Reason:</strong> {row['message']}</p>
+            <p style='color: #0A84FF;'><strong>💡 Action:</strong> Review if this is a carry-forward position or update date range to include missing trades.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
 
 def show_ai_insights_tab(trades_df, stats):
-    """AI insights tab"""
+    """AI insights with premium quality"""
     
-    st.header("🤖 AI-Powered Insights")
+    if trades_df is None or len(trades_df) == 0:
+        st.warning("No trades to analyze")
+        return
     
-    # Check if Groq is configured
+    st.header("AI-Powered Insights")
+    
     try:
         groq_gen = groq_insights.get_groq_generator()
         success, msg = groq_gen.connect()
         
         if not success:
-            st.warning(f"⚠️ AI insights unavailable: {msg}")
-            st.info("💡 Configure Groq API key in Settings to enable AI insights")
+            st.warning(f"⚠️ {msg}")
+            st.info("💡 Add Groq API key in sidebar to enable AI insights")
             return
         
         # Portfolio summary
-        st.subheader("📊 Portfolio Analysis")
-        
-        with st.spinner("Generating AI analysis..."):
+        st.subheader("Portfolio Analysis")
+        with st.spinner("Analyzing..."):
             summary = groq_gen.generate_portfolio_summary(stats, trades_df)
             if summary:
                 st.markdown(f"""
@@ -448,9 +528,8 @@ def show_ai_insights_tab(trades_df, stats):
         
         st.divider()
         
-        # Recent trades analysis
-        st.subheader("🔍 Recent Trades Analysis")
-        
+        # Recent trades
+        st.subheader("Recent Trades Analysis")
         recent_trades = trades_df.sort_values('entry_date', ascending=False).head(5)
         
         for idx, trade in recent_trades.iterrows():
@@ -459,74 +538,73 @@ def show_ai_insights_tab(trades_df, stats):
                 st.write(insight)
         
     except Exception as e:
-        st.error(f"❌ Error: {str(e)}")
+        st.error(f"❌ {str(e)}")
 
 
 def show_patterns_tab(trades_df):
-    """Behavioral patterns tab"""
+    """Behavioral patterns"""
     
-    st.header("📈 Behavioral Patterns")
+    if trades_df is None or len(trades_df) == 0:
+        st.warning("No trades to analyze")
+        return
+    
+    st.header("Behavioral Patterns")
     
     patterns = discipline_scorer.detect_behavioral_patterns(trades_df)
     
     if len(patterns) == 0:
-        st.success("✅ No major behavioral issues detected!")
+        st.success("✅ No major issues detected!")
     else:
         for pattern in patterns:
-            severity_color = {
-                'high': '#FF5B5B',
-                'medium': '#FFB946',
-                'low': '#4A90E2'
-            }
+            color = {'high': '#FF453A', 'medium': '#FF9F0A', 'low': '#0A84FF'}[pattern['severity']]
             
             st.markdown(f"""
-            <div class='metric-card' style='border-left: 4px solid {severity_color[pattern["severity"]]}'>
+            <div class='metric-card' style='border-left: 4px solid {color}'>
                 <h3>⚠️ {pattern['pattern']}</h3>
                 <p>{pattern['description']}</p>
-                <p style='color: #00C896;'><b>💡 Recommendation:</b> {pattern['recommendation']}</p>
+                <p style='color: #30D158;'><strong>💡 Recommendation:</strong> {pattern['recommendation']}</p>
             </div>
             """, unsafe_allow_html=True)
 
 
 def show_export_tab(trades_df):
-    """Export tab"""
+    """Export functionality"""
     
-    st.header("💾 Export Data")
+    if trades_df is None or len(trades_df) == 0:
+        st.warning("No trades to export")
+        return
     
-    st.info("🔒 **Privacy**: Data is not stored. Export to save locally.")
+    st.header("Export Data")
+    st.info("🔒 Data is session-only. Export to save locally.")
     
-    # Export options
     col1, col2 = st.columns(2)
     
     with col1:
-        # CSV export
         csv = trades_df.to_csv(index=False)
         st.download_button(
-            label="📥 Download CSV",
-            data=csv,
-            file_name=f"tradeaudit_report_{datetime.now().strftime('%Y%m%d')}.csv",
-            mime="text/csv",
+            "📥 Download CSV",
+            csv,
+            f"tradeaudit_{datetime.now().strftime('%Y%m%d')}.csv",
+            "text/csv",
             use_container_width=True
         )
     
     with col2:
-        # Excel export
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
             trades_df.to_excel(writer, sheet_name='Trades', index=False)
         
         st.download_button(
-            label="📥 Download Excel",
-            data=buffer.getvalue(),
-            file_name=f"tradeaudit_report_{datetime.now().strftime('%Y%m%d')}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "📥 Download Excel",
+            buffer.getvalue(),
+            f"tradeaudit_{datetime.now().strftime('%Y%m%d')}.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True
         )
 
 
-# Chart functions
 def plot_cumulative_pnl(trades_df):
-    """Plot cumulative P&L"""
+    """Cumulative P&L chart"""
     df = trades_df.sort_values('entry_date')
     df['cumulative_pnl'] = df['net_pnl'].cumsum()
     
@@ -536,7 +614,8 @@ def plot_cumulative_pnl(trades_df):
         y=df['cumulative_pnl'],
         mode='lines',
         fill='tozeroy',
-        line=dict(color='#4A90E2', width=2)
+        line=dict(color='#0A84FF', width=3),
+        fillcolor='rgba(10, 132, 255, 0.1)'
     ))
     
     fig.update_layout(
@@ -545,82 +624,29 @@ def plot_cumulative_pnl(trades_df):
         font=dict(color='white'),
         xaxis=dict(showgrid=False),
         yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
-        height=300
+        height=350,
+        margin=dict(l=0, r=0, t=0, b=0)
     )
     
     st.plotly_chart(fig, use_container_width=True)
 
 
-def plot_win_loss_dist(trades_df):
-    """Plot win/loss distribution"""
+def plot_pnl_dist(trades_df):
+    """P&L distribution"""
     wins = trades_df[trades_df['win'] == True]['net_pnl']
     losses = trades_df[trades_df['win'] == False]['net_pnl']
     
     fig = go.Figure()
-    fig.add_trace(go.Histogram(x=wins, name='Wins', marker_color='#00C896', opacity=0.7))
-    fig.add_trace(go.Histogram(x=losses, name='Losses', marker_color='#FF5B5B', opacity=0.7))
+    fig.add_trace(go.Histogram(x=wins, name='Wins', marker_color='#30D158', opacity=0.7))
+    fig.add_trace(go.Histogram(x=losses, name='Losses', marker_color='#FF453A', opacity=0.7))
     
     fig.update_layout(
         barmode='overlay',
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
         font=dict(color='white'),
-        height=300
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
-
-
-def plot_pnl_by_symbol(trades_df):
-    """Plot P&L by symbol"""
-    symbol_pnl = trades_df.groupby('symbol')['net_pnl'].sum().sort_values(ascending=True).tail(10)
-    
-    colors = ['#00C896' if x > 0 else '#FF5B5B' for x in symbol_pnl.values]
-    
-    fig = go.Figure(go.Bar(
-        x=symbol_pnl.values,
-        y=symbol_pnl.index,
-        orientation='h',
-        marker_color=colors
-    ))
-    
-    fig.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white'),
-        height=300
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
-
-
-def plot_discipline_trend(trades_df):
-    """Plot discipline score trend"""
-    df = trades_df.sort_values('entry_date')
-    
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=df['entry_date'],
-        y=df['discipline_score'],
-        mode='markers',
-        marker=dict(
-            size=8,
-            color=df['discipline_score'],
-            colorscale='RdYlGn',
-            showscale=True
-        )
-    ))
-    
-    # Add grade threshold lines
-    fig.add_hline(y=90, line_dash="dash", line_color="green", annotation_text="A+")
-    fig.add_hline(y=60, line_dash="dash", line_color="yellow", annotation_text="C")
-    
-    fig.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white'),
-        yaxis=dict(range=[0, 100]),
-        height=300
+        height=350,
+        margin=dict(l=0, r=0, t=0, b=0)
     )
     
     st.plotly_chart(fig, use_container_width=True)

@@ -1,6 +1,6 @@
 """
-Groq AI Integration
-Generates AI-powered trading insights using Groq's LLM API
+Groq AI Integration - Premium Quality
+High-quality, actionable insights with specific data and recommendations
 """
 
 import streamlit as st
@@ -13,14 +13,14 @@ except ImportError:
     GROQ_AVAILABLE = False
 
 class GroqInsightsGenerator:
-    """Generates AI-powered insights for trades using Groq API"""
+    """Premium AI-powered insights with detailed analysis"""
     
     def __init__(self):
         self.client = None
         self.connected = False
     
     def connect(self):
-        """Connect to Groq API using Streamlit secrets"""
+        """Connect to Groq API"""
         if not GROQ_AVAILABLE:
             return False, "Groq package not installed. Run: pip install groq"
         
@@ -35,7 +35,7 @@ class GroqInsightsGenerator:
             return False, f"Groq connection failed: {str(e)}"
     
     def generate_trade_insight(self, trade_data, setup_analysis=None):
-        """Generate AI insight for a single trade"""
+        """Generate premium insight for single trade with specifics"""
         
         if not GROQ_AVAILABLE:
             return "⚠️ AI insights unavailable: Groq package not installed"
@@ -43,9 +43,41 @@ class GroqInsightsGenerator:
         if not self.connected:
             success, msg = self.connect()
             if not success:
-                return f"⚠️ AI insights unavailable: {msg}"
+                return f"⚠️ {msg}"
         
-        prompt = self._build_trade_prompt(trade_data, setup_analysis)
+        # PREMIUM PROMPT with specific data
+        direction = trade_data.get('direction', 'LONG')
+        symbol = trade_data.get('symbol', 'Unknown')
+        entry_price = trade_data.get('entry_price', 0)
+        exit_price = trade_data.get('exit_price', 0)
+        net_pnl = trade_data.get('net_pnl', 0)
+        return_pct = trade_data.get('return_pct', 0)
+        holding_mins = trade_data.get('holding_period_minutes', 0)
+        charges = trade_data.get('total_charges', 0)
+        qty = trade_data.get('quantity', 0)
+        
+        win_loss = "WIN" if net_pnl > 0 else "LOSS"
+        
+        prompt = f"""You are a professional trading analyst. Analyze this trade with SPECIFIC, ACTIONABLE insights.
+
+TRADE DATA:
+• Symbol: {symbol}
+• Direction: {direction}
+• Entry: ₹{entry_price:,.2f}
+• Exit: ₹{exit_price:,.2f}
+• Quantity: {qty:,.0f}
+• Holding Time: {holding_mins} minutes
+• Result: {win_loss} - ₹{net_pnl:,.0f} ({return_pct:.2f}%)
+• Charges: ₹{charges:,.2f} ({(charges/abs(net_pnl)*100) if net_pnl != 0 else 0:.1f}% of P&L)
+
+REQUIRED OUTPUT FORMAT:
+1. **What Happened**: 1 sentence on price movement
+2. **Execution Quality**: Comment on timing, holding period (was {holding_mins} min optimal?)
+3. **Key Mistake/Success**: Specific actionable point with numbers
+4. **Improvement**: One concrete action for next similar trade
+
+Keep response under 120 words. Use actual numbers from data. Be direct and specific.
+"""
         
         try:
             response = self.client.chat.completions.create(
@@ -53,25 +85,105 @@ class GroqInsightsGenerator:
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an expert trading analyst. Analyze trades concisely and provide actionable insights. Keep responses under 100 words. Focus on what the trader did right/wrong and specific improvements."
+                        "content": "You are an elite trading analyst. Provide specific, data-driven insights. Always reference actual numbers. No generic advice."
                     },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
+                    {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
-                max_tokens=200
+                max_tokens=250
             )
             
-            insight = response.choices[0].message.content
-            return insight
+            return response.choices[0].message.content
             
         except Exception as e:
-            return f"⚠️ Error generating insight: {str(e)}"
+            return f"⚠️ Error: {str(e)}"
+    
+    def generate_portfolio_summary(self, stats, trades_df):
+        """Premium portfolio analysis with specific recommendations"""
+        
+        if not self.connected:
+            self.connect()
+        
+        # Extract key metrics
+        total_trades = stats.get('total_trades', 0)
+        win_rate = stats.get('win_rate', 0)
+        net_pnl = stats.get('net_pnl', 0)
+        profit_factor = stats.get('profit_factor', 0)
+        avg_win = stats.get('avg_win', 0)
+        avg_loss = stats.get('avg_loss', 0)
+        largest_win = stats.get('largest_win', 0)
+        largest_loss = stats.get('largest_loss', 0)
+        
+        # Direction stats
+        long_trades = stats.get('long_trades', 0)
+        short_trades = stats.get('short_trades', 0)
+        long_pnl = stats.get('long_pnl', 0)
+        short_pnl = stats.get('short_pnl', 0)
+        long_wr = stats.get('long_win_rate', 0)
+        short_wr = stats.get('short_win_rate', 0)
+        
+        # Top symbols
+        if 'symbol' in trades_df.columns and 'net_pnl' in trades_df.columns:
+            symbol_pnl = trades_df.groupby('symbol')['net_pnl'].sum().sort_values(ascending=False)
+            best_symbol = symbol_pnl.index[0] if len(symbol_pnl) > 0 else 'N/A'
+            best_symbol_pnl = symbol_pnl.iloc[0] if len(symbol_pnl) > 0 else 0
+            worst_symbol = symbol_pnl.index[-1] if len(symbol_pnl) > 0 else 'N/A'
+            worst_symbol_pnl = symbol_pnl.iloc[-1] if len(symbol_pnl) > 0 else 0
+        else:
+            best_symbol = worst_symbol = 'N/A'
+            best_symbol_pnl = worst_symbol_pnl = 0
+        
+        prompt = f"""Analyze this trading portfolio with SPECIFIC insights and actionable recommendations.
+
+PORTFOLIO METRICS:
+• Total Trades: {total_trades}
+• Net P&L: ₹{net_pnl:,.0f}
+• Win Rate: {win_rate:.1f}%
+• Profit Factor: {profit_factor:.2f}
+• Avg Win: ₹{avg_win:,.0f} | Avg Loss: ₹{avg_loss:,.0f}
+• Largest Win: ₹{largest_win:,.0f} | Largest Loss: ₹{largest_loss:,.0f}
+
+DIRECTION ANALYSIS:
+• LONG: {long_trades} trades, ₹{long_pnl:,.0f} P&L, {long_wr:.1f}% win rate
+• SHORT: {short_trades} trades, ₹{short_pnl:,.0f} P&L, {short_wr:.1f}% win rate
+
+BEST/WORST:
+• Best Symbol: {best_symbol} (₹{best_symbol_pnl:,.0f})
+• Worst Symbol: {worst_symbol} (₹{worst_symbol_pnl:,.0f})
+
+REQUIRED OUTPUT:
+**Overall Assessment**: 2 sentences on portfolio performance with key numbers
+
+**Biggest Strength**: 1 specific strength with numbers (e.g., "LONG trades average ₹X profit")
+
+**Critical Weakness**: 1 specific weakness with numbers (e.g., "SHORT win rate at X% vs Y% needed")
+
+**Top Priority Action**: ONE concrete, measurable improvement (e.g., "Reduce position size on SHORT trades by 30% until win rate exceeds 55%")
+
+Keep total response under 150 words. Use actual numbers. Be direct and actionable.
+"""
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=st.secrets.get("groq", {}).get("model", "llama-3.3-70b-versatile"),
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a professional trading coach. Provide specific, data-driven insights with actual numbers. Focus on measurable, actionable recommendations."
+                    },
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=300
+            )
+            
+            return response.choices[0].message.content
+            
+        except:
+            return ""
     
     def generate_pattern_insights(self, patterns_detected):
-        """Generate insights about detected behavioral patterns"""
+        """Premium pattern analysis with specific actions"""
         
         if not self.connected:
             success, msg = self.connect()
@@ -81,95 +193,44 @@ class GroqInsightsGenerator:
         if not patterns_detected or len(patterns_detected) == 0:
             return ""
         
-        prompt = f"""
-        A trader shows these behavioral patterns:
+        # Format patterns for prompt
+        patterns_text = "\n".join([
+            f"• {p['pattern']}: {p['description']}"
+            for p in patterns_detected
+        ])
         
-        {json.dumps(patterns_detected, indent=2)}
-        
-        Provide 3 specific, actionable recommendations to improve discipline.
-        Keep response under 150 words. Be direct and specific.
-        """
+        prompt = f"""Analyze these trading behavioral patterns and provide SPECIFIC, ACTIONABLE recommendations.
+
+DETECTED PATTERNS:
+{patterns_text}
+
+For EACH pattern, provide:
+1. **Root Cause**: Why this is happening (psychological/technical)
+2. **Specific Fix**: Concrete action with measurable target
+3. **Implementation**: How to execute this fix starting tomorrow
+
+Keep each pattern analysis to 3-4 sentences. Total response under 200 words.
+Be direct, specific, and actionable.
+"""
         
         try:
             response = self.client.chat.completions.create(
                 model=st.secrets.get("groq", {}).get("model", "llama-3.3-70b-versatile"),
                 messages=[
-                    {"role": "system", "content": "You are a trading psychology expert."},
+                    {
+                        "role": "system",
+                        "content": "You are a trading psychology expert. Provide specific, implementable solutions."
+                    },
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.8,
-                max_tokens=250
-            )
-            
-            return response.choices[0].message.content
-            
-        except Exception as e:
-            return ""
-    
-    def generate_portfolio_summary(self, stats, trades_df):
-        """Generate overall portfolio analysis"""
-        
-        if not self.connected:
-            self.connect()
-        
-        prompt = f"""
-        Analyze this trading portfolio:
-        
-        Total Trades: {stats['total_trades']}
-        Win Rate: {stats['win_rate']:.1f}%
-        Net P&L: ₹{stats['net_pnl']:,.0f}
-        Profit Factor: {stats['profit_factor']:.2f}
-        Avg Win: ₹{stats['avg_win']:,.0f}
-        Avg Loss: ₹{stats['avg_loss']:,.0f}
-        
-        Provide:
-        1. Overall assessment (1-2 sentences)
-        2. Biggest strength (1 sentence)
-        3. Biggest weakness (1 sentence)
-        4. Top priority improvement (1 sentence)
-        
-        Total: Under 100 words. Be direct.
-        """
-        
-        try:
-            response = self.client.chat.completions.create(
-                model=st.secrets.get("groq", {}).get("model", "llama-3.3-70b-versatile"),
-                messages=[
-                    {"role": "system", "content": "You are a professional trading coach."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7,
-                max_tokens=200
+                max_tokens=350
             )
             
             return response.choices[0].message.content
             
         except:
             return ""
-    
-    def _build_trade_prompt(self, trade, setup_analysis):
-        """Build prompt for single trade analysis"""
-        
-        direction = trade.get('direction', 'LONG')
-        win_loss = "WIN" if trade['net_pnl'] > 0 else "LOSS"
-        
-        prompt = f"""
-        Analyze this trade:
-        
-        Symbol: {trade['symbol']}
-        Direction: {direction}
-        Entry: ₹{trade['entry_price']} at {trade.get('entry_time', 'N/A')}
-        Exit: ₹{trade['exit_price']} at {trade.get('exit_time', 'N/A')}
-        Result: {win_loss} ₹{trade['net_pnl']:,.0f} ({trade.get('return_pct', 0):.1f}%)
-        Holding: {trade.get('holding_period_minutes', 0)} minutes
-        """
-        
-        if setup_analysis:
-            prompt += f"\n\nSetup Analysis:\n{json.dumps(setup_analysis, indent=2)}"
-        
-        prompt += "\n\nProvide: What went right/wrong + specific improvement. Under 80 words."
-        
-        return prompt
 
 
 _groq_instance = None
