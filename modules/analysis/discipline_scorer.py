@@ -227,7 +227,7 @@ def detect_behavioral_patterns(trades_df):
         })
     
     # 4. High brokerage costs
-    if stats['net_pnl'] > 0:
+    if 'total_charges' in stats and 'net_pnl' in stats and stats['net_pnl'] > 0:
         charge_pct = (stats['total_charges'] / stats['net_pnl']) * 100
         if charge_pct > 50:
             patterns.append({
@@ -247,5 +247,20 @@ def detect_behavioral_patterns(trades_df):
                 'description': f"Average discipline score: {avg_score:.1f}/100.",
                 'recommendation': 'Review trades with F/D grades. Identify mistakes.'
             })
+    
+    # 6. Direction bias (Phase 2)
+    if 'direction' in df.columns and 'long_pnl' in stats and 'short_pnl' in stats:
+        if stats['long_trades'] > 0 and stats['short_trades'] > 0:
+            long_avg = stats['long_pnl'] / stats['long_trades']
+            short_avg = stats['short_pnl'] / stats['short_trades']
+            
+            if abs(long_avg) > abs(short_avg) * 2 or abs(short_avg) > abs(long_avg) * 2:
+                better_direction = 'LONG' if long_avg > short_avg else 'SHORT'
+                patterns.append({
+                    'pattern': 'Direction Bias',
+                    'severity': 'medium',
+                    'description': f"{better_direction} trades performing significantly better.",
+                    'recommendation': f'Focus more on {better_direction} setups or improve {"SHORT" if better_direction == "LONG" else "LONG"} strategy.'
+                })
     
     return patterns
