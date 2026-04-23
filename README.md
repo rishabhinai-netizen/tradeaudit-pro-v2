@@ -1,181 +1,74 @@
-# 🎉 PHASE 2 FINAL FIX - COMPLETE PACKAGE
+# TradeAudit Pro v2
 
-## ✅ ALL ISSUES RESOLVED:
+**India's AI-Powered Trade Discipline Analyser**
 
-1. ✅ **P&L Calculation** - Correct ₹8-9L (excludes unmatched trades)
-2. ✅ **STT/CTT Included** - Now in total_charges
-3. ✅ **Attention Required Tab** - Shows 3 excluded symbols
-4. ✅ **Premium UI** - Apple-style minimalist design
-5. ✅ **Quality AI Insights** - Specific, actionable recommendations
-6. ✅ **Professional Messages** - No more "pathetic" errors
+A professional-grade trade analytics platform built for Indian retail traders. Upload your broker's trade export and get instant P&L analysis, discipline scoring, and AI-powered insights — all in one place.
 
 ---
 
-## 📦 WHAT YOU'RE GETTING:
+## What It Does
 
-This package contains **4 FIXED FILES** ready for GitHub Desktop deployment:
-
-### **File 1: kotak_parser.py** ✅ DONE
-Location: `modules/parsers/kotak_parser.py`
-- Excludes unmatched quantity trades
-- Includes STT/CTT in charges
-- Returns attention_required_df separately
-- Proper FIFO with validation
-
-### **File 2: app.py** 🚧 CREATING NOW
-Location: `app.py` (root)
-- Premium Apple-style UI
-- New "Attention Required" tab
-- Enhanced data visualization
-- Professional error messages
-- Smooth animations
-
-### **File 3: groq_insights.py** 🚧 CREATING NOW
-Location: `modules/ai/groq_insights.py`
-- Detailed prompts with actual numbers
-- Trade-specific insights with stats
-- Portfolio analysis with context
-- Professional formatting
-- Actionable recommendations
-
-### **File 4: discipline_scorer.py** ✅ SAME AS BEFORE
-Location: `modules/analysis/discipline_scorer.py`
-- Already has direction support
-- Pattern detection working
-- No changes needed from Phase 2
+- **P&L Analytics** — Accurate FIFO-based profit & loss calculation with STT/CTT charges included
+- **Discipline Scoring** — Analyses your trading behaviour: revenge trading, overtrading, stop-loss adherence
+- **AI Insights** — Specific, data-driven recommendations powered by Groq LLM
+- **Broker Support** — Currently supports Kotak Securities derivatives export format
+- **Attention Required Tab** — Flags unmatched/excluded trades with explanations
 
 ---
 
-## 🚀 GITHUB DESKTOP DEPLOYMENT (Step-by-Step):
+## Supported Brokers
 
-### **Step 1: Download Package**
-- Download `PHASE2_FINAL_FIX` folder (will provide link)
-- Extract to Desktop
-
-### **Step 2: Open Your Repo in File Explorer**
-1. Open **GitHub Desktop**
-2. Current Repository → **tradeaudit-pro-v2**
-3. Menu → **Repository** → **Show in Explorer**
-
-### **Step 3: Replace 4 Files**
-
-**IMPORTANT LOCATIONS:**
-
-| File | Source | Destination in Repo |
-|------|--------|-------------------|
-| kotak_parser.py | From package | `modules/parsers/kotak_parser.py` |
-| app.py | From package | `app.py` (root folder) |
-| groq_insights.py | From package | `modules/ai/groq_insights.py` |
-| discipline_scorer.py | From package | `modules/analysis/discipline_scorer.py` |
-
-**How to Replace:**
-1. Navigate to destination folder in repo
-2. **Delete** old file
-3. **Copy** new file from package
-4. Repeat for all 4 files
-
-### **Step 4: Commit in GitHub Desktop**
-
-1. GitHub Desktop will show **4 changed files**
-2. Bottom left → Summary: 
-   ```
-   Phase 2 Fix: Correct P&L + STT + Premium UI + Better AI
-   ```
-3. Click **"Commit to main"**
-
-### **Step 5: Push to GitHub**
-
-1. Top bar → Click **"Push origin"**
-2. Wait 10-30 seconds
-3. ✅ Done!
-
-### **Step 6: Streamlit Auto-Deploys**
-
-- Waits 2-3 minutes
-- Or manually reboot in Streamlit dashboard
+| Broker | Segment | Status |
+|--------|---------|--------|
+| Kotak Securities | Derivatives (F&O) | ✅ Supported |
 
 ---
 
-## 📊 EXPECTED RESULTS:
+## Quick Start
 
-### **Dashboard Tab:**
-- Total Trades: ~80 (only matched)
-- Net P&L: ₹8-9 Lakhs ✅
-- LONG/SHORT breakdown visible
-- All charges include STT
-
-### **Attention Required Tab (NEW):**
-```
-⚠️ 3 Symbols Excluded from Analysis
-
-1. FUTIDXBANKNIFTY 29MAY2025
-   Status: SHORT (60 units)
-   Reason: Buy entry missing (likely pre-April 2025)
-   Impact: Would add ₹33.3L to P&L (artificial)
-   Action: Review position or update date range
-
-2. OPTIDXBANKNIFTY 29MAY2025CE 54000
-   Status: LONG (30 units unmatched)
-   Reason: Quantity mismatch
-   Action: Check if position still open
-
-3. OPTIDXBANKNIFTY 29MAY2025CE 55000
-   Status: LONG (30 units unmatched)
-   Reason: Quantity mismatch
-   Action: Check if position still open
+```bash
+pip install -r requirements.txt
+streamlit run app.py
 ```
 
-### **AI Insights Tab:**
-```
-📊 Portfolio Analysis
+---
 
-Overall: You generated ₹8.74L profit across 80 closed positions with 
-a 62% win rate. Your strength is LONG trades (₹9.2L vs ₹-0.5L SHORT).
+## Configuration
 
-Key Metrics:
-• Profit Factor: 1.85 (good - aim for >2)
-• Avg Win: ₹18,743 vs Avg Loss: ₹12,456
-• Win Rate: 62% (solid - industry avg 45-55%)
-• Best Symbol: FUTCOMSILVERM (₹9.7L profit)
+Set your Groq API key in Streamlit secrets:
 
-Top Priority: Your SHORT trades are dragging down performance. 
-Consider focusing exclusively on LONG setups until SHORT win rate 
-improves above 50% (currently 38%).
+```toml
+GROQ_API_KEY = "your_groq_api_key"
 ```
 
-### **Premium UI:**
-- Dark minimalist background (#0A0E27)
-- Clean typography (SF Pro / Inter)
-- Smooth hover effects
-- Bloomberg-style data tables
-- Professional color scheme
+---
+
+## Tech Stack
+
+- **Frontend** — Streamlit with Apple-style minimalist UI
+- **AI** — Groq LLM (llama3-70b) for trade insights
+- **Analytics** — Pandas, NumPy for FIFO P&L engine
+- **Parsing** — Custom broker CSV parsers per module
 
 ---
 
-## 🎯 MANUAL VERIFICATION CHECKLIST:
+## Project Structure
 
-After deployment, verify:
-
-- [ ] Upload Kotak Derivatives → Shows ~80 trades
-- [ ] Dashboard P&L → Shows ₹8-9 Lakhs
-- [ ] Attention Tab exists → Shows 3 excluded symbols
-- [ ] AI Insights → Specific numbers and recommendations
-- [ ] UI → Dark, minimalist, professional
-- [ ] No "pathetic" error messages
-- [ ] STT column visible in exports
-
----
-
-## 📞 SUPPORT:
-
-If any issues:
-1. Screenshot the error
-2. Check GitHub → Verify files updated
-3. Check Streamlit logs
-4. Hard refresh browser (Ctrl + Shift + R)
+```
+tradeaudit-pro-v2/
+├── app.py                    # Main Streamlit application
+├── modules/
+│   ├── parsers/
+│   │   └── kotak_parser.py   # Kotak CSV parser with FIFO logic
+│   ├── analysis/
+│   │   └── discipline_scorer.py  # Behavioural analysis engine
+│   └── ai/
+│       └── groq_insights.py  # AI insights generator
+└── requirements.txt
+```
 
 ---
 
-**I'm now creating the remaining files (app.py and groq_insights.py). Will share complete package in next message.**
+## Built By
 
-**Package will be downloadable as ONE folder with all 4 files + deployment guide.**
+Rishabh Inai — Chartered Accountant, Lead Investigator, and active NSE trader.
